@@ -1,0 +1,17 @@
+[
+  {
+    "nome": "Fulano",
+    "curso": "Sistemas de Informação",
+    "ira": 7.5
+  },
+  {
+    "nome": "Sicrano",
+    "curso": "Sistemas de Informação",
+    "ira": 8.0
+  },
+  {
+    "nome": "Beltrano",
+    "curso": "Sistemas de Informação",
+    "ira": 9.2
+  }
+]
