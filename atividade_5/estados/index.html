@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>COVID-19 - Estados Brasileiros</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #999;
+        padding: 8px;
+        text-align: center;
+      }
+      thead {
+        background-color: #f2f2f2;
+      }
+      .acima-media {
+        background-color: #ffcccc;
+      }
+      .destaque {
+        font-weight: bold;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Relatório COVID-19 - Estados Brasileiros</h1>
+    <table id="tabela-estados">
+      <thead>
+        <tr>
+          <th>Nome do Estado</th>
+          <th>UF</th>
+          <th>Casos</th>
+          <th>Suspeitos</th>
+          <th>Mortes</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot></tfoot>
+    </table>
+
+    <script>
+      const tabela = document.getElementById("tabela-estados");
+      const corpo = tabela.querySelector("tbody");
+      const rodape = tabela.querySelector("tfoot");
+
+      async function carregarDados() {
+        const res = await fetch(
+          "https://covid19-brazil-api.now.sh/api/report/v1"
+        );
+        const json = await res.json();
+        const estados = json.data;
+
+        let totalCasos = 0;
+        let totalSuspeitos = 0;
+        let totalMortes = 0;
+        let maiorRelacao = -1;
+        let menorRelacao = Infinity;
+        let estadoMaiorRelacao = "";
+        let estadoMenorRelacao = "";
+
+        estados.forEach((estado) => {
+          const { state, uf, cases, suspects, deaths } = estado;
+
+          totalCasos += cases;
+          totalSuspeitos += suspects;
+          totalMortes += deaths;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td>${state}</td>
+          <td>${uf}</td>
+          <td>${cases}</td>
+          <td>${suspects}</td>
+          <td>${deaths}</td>
+        `;
+          corpo.appendChild(tr);
+
+          const relacao = deaths > 0 ? cases / deaths : 0;
+          if (relacao > maiorRelacao) {
+            maiorRelacao = relacao;
+            estadoMaiorRelacao = state;
+          }
+          if (relacao < menorRelacao && deaths > 0) {
+            menorRelacao = relacao;
+            estadoMenorRelacao = state;
+          }
+        });
+
+        const mediaCasos = (totalCasos / estados.length).toFixed(2);
+        const mediaSuspeitos = (totalSuspeitos / estados.length).toFixed(2);
+        const mediaMortes = (totalMortes / estados.length).toFixed(2);
+
+        Array.from(corpo.rows).forEach((row) => {
+          const mortes = parseInt(row.cells[4].textContent);
+          if (mortes > mediaMortes) {
+            row.classList.add("acima-media");
+          }
+        });
+
+        rodape.innerHTML = `
+        <tr class="destaque">
+          <td colspan="2">Médias</td>
+          <td>${mediaCasos}</td>
+          <td>${mediaSuspeitos}</td>
+          <td>${mediaMortes}</td>
+        </tr>
+        <tr>
+          <td colspan="5">Estado com MAIOR relação Casos/Mortes: <strong>${estadoMaiorRelacao} (${maiorRelacao.toFixed(
+          2
+        )})</strong></td>
+        </tr>
+        <tr>
+          <td colspan="5">Estado com MENOR relação Casos/Mortes: <strong>${estadoMenorRelacao} (${menorRelacao.toFixed(
+          2
+        )})</strong></td>
+        </tr>
+      `;
+      }
+
+      carregarDados();
+    </script>
+  </body>
+</html>
